@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:gone/signin.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'home.dart';
+import 'model/User.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,11 +18,34 @@ Future<void> main() async {
       name: "Gone"
   );
 
-  runApp(const MyApp());
+  var prefs = await SharedPreferences.getInstance();
+  var login = prefs.getString("login");
+  var password = prefs.getString("password");
+
+  print(" ==== $login ==== $password");
+
+  runApp(MyApp.init(login, password));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key key}) : super(key: key);
+  MyApp({Key key, String login, String password}) : super(key: key);
+
+  SharedPreferences prefs;
+  String login = "";
+  String password = "";
+
+  MyApp.init(this.login, this.password, {Key key}) : super(key: key);
+
+  Widget getFirstPage() {
+
+    if(login != null && login.isNotEmpty &&
+        password != null && password.isNotEmpty) {
+      return HomePage(userConnected: User(login, password));
+    }
+    else {
+      return const SigninPage();
+    }
+  }
 
   // This widget is the root of your application.
   @override
@@ -29,7 +56,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: SigninPage(),
+      home: getFirstPage()
     );
   }
 }
