@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gone/signin.dart';
 import 'model/User.dart';
+import 'model/ToDo.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -20,6 +22,10 @@ class _HomePage extends State<HomePage> {
   String idUser = "";
   final TextEditingController todo = TextEditingController();
   SharedPreferences prefs;
+  List<Widget> toDoToDisplay = [];
+  bool loading = true;
+  double oi = 350;
+
 
   @override
   _HomePage({this.userConnected});
@@ -42,20 +48,55 @@ class _HomePage extends State<HomePage> {
       for (var result in querySnapshot.docs) {
         idUser = result.id;
       }
+      _getToDoToDisplay();
 
-      print("==== $idUser ");
+    });
+  }
 
-      FirebaseFirestore.instance
+
+  void _getToDoToDisplay() async {
+
+      List<Widget> dataTable = [];
+
+      await FirebaseFirestore.instance
           .collection('ToDo')
           .where("userId", isEqualTo: idUser)
           .get()
           .then((querySnapshot) {
         for (var result in querySnapshot.docs) {
-          print(result.get("name"));
+          dataTable.add(
+            setUpToDo(result)
+          );
+          dataTable.add(
+              const Divider(
+                height: 3.5,
+              )
+          );
         }
       });
 
-    });
+      setState(() {
+        loading = false;
+        toDoToDisplay = dataTable;
+      });
+
+  }
+
+  Widget setUpToDo(toDo) {
+
+    return GestureDetector(
+      child: Container(
+        width: oi,
+        height: MediaQuery.of(context).size.height /10,
+        child: Card(
+          margin: const EdgeInsets.all(0),
+         child: Center(
+           child: Text(toDo.get("name").toString()),
+         ),
+        )
+      ),
+    );
+
   }
 
   void _logOut() async {
@@ -74,8 +115,9 @@ class _HomePage extends State<HomePage> {
   void _createTodo() {
     FirebaseFirestore.instance
         .collection('ToDo')
-        .add({'name': todo.text.toString(), 'userID': idUser});
+        .add({'name': todo.text.toString(), 'userId': idUser});
 
+    _getToDoToDisplay();
   }
 
   @override
@@ -116,8 +158,20 @@ class _HomePage extends State<HomePage> {
           ),
         ),
       ]),
-      body: const Center(
-        child: Text("Home Page"),
+      body: loading ? const Center(
+          child: SpinKitChasingDots(
+            color: Colors.red,
+            size: 25.0,
+        )
+      )
+      : toDoToDisplay.isEmpty ? const Center(
+        child: Text("Vous avez aucune de ToDo 🔎"),
+      )
+      : SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+          child: Column(
+              children: toDoToDisplay,
+          ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -181,8 +235,9 @@ class _HomePage extends State<HomePage> {
                           textAlign: TextAlign.center,
                         ),
                         onPressed: () {
-                          _createTodo();
-                          Navigator.pop(context, false);
+                            _createTodo();
+                            todo.text = "";
+                            Navigator.pop(context, false);
                         },
                       ),
                     ),
