@@ -1,12 +1,16 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:gone/signin.dart';
+import 'package:gone/inToDo.dart';
+
 import 'model/User.dart';
 import 'model/ToDo.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 
-import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key key, this.userConnected}) : super(key: key);
@@ -20,12 +24,15 @@ class HomePage extends StatefulWidget {
 class _HomePage extends State<HomePage> {
   User userConnected;
   String idUser = "";
+  bool loading = true;
+
+  List<Widget> toDoToDisplay = [];
+  List<String> randomLogoList = ["👾", "🐱", "🍄", "🌵", "🌷", "🌼", "☄️", "🌎", "💫", "⚡️",
+    "🌈", "☂️", "🥝", "⚽️", "🎯", "🎮", "⏰", "🔭", "🎁", "✏️", "🤖", "👒", "👑", "🦖",
+    "🦕", "🦬", "🌙"];
+
   final TextEditingController todo = TextEditingController();
   SharedPreferences prefs;
-  List<Widget> toDoToDisplay = [];
-  bool loading = true;
-  double oi = 350;
-
 
   @override
   _HomePage({this.userConnected});
@@ -67,11 +74,6 @@ class _HomePage extends State<HomePage> {
           dataTable.add(
             setUpToDo(result)
           );
-          dataTable.add(
-              const Divider(
-                height: 3.5,
-              )
-          );
         }
       });
 
@@ -82,18 +84,66 @@ class _HomePage extends State<HomePage> {
 
   }
 
+  void _goInTodo(toDo) {
+    var currentToDo = ToDo(toDo.get("name"), toDo.get("userId"), toDo.get("logo"));
+    Navigator.pushReplacement<void, void>(
+        context,
+        MaterialPageRoute<void>(
+        builder: (BuildContext context) => inToDo(
+          userConnected: userConnected,
+          currentToDo: currentToDo,
+          idUser: idUser,
+          idToDo: toDo.id)
+    ));
+
+  }
+
   Widget setUpToDo(toDo) {
 
     return GestureDetector(
+      onTap: () {
+        _goInTodo(toDo);
+      },
       child: Container(
-        width: oi,
-        height: MediaQuery.of(context).size.height /10,
-        child: Card(
-          margin: const EdgeInsets.all(0),
-         child: Center(
-           child: Text(toDo.get("name").toString()),
-         ),
-        )
+          height: MediaQuery.of(context).size.height /10,
+          margin: EdgeInsets.only(top: MediaQuery.of(context).size.height /50),
+          child: Center(
+            child: Card(
+              elevation: 1,
+              color: const Color(0xFFF4F5FC),
+              margin:  EdgeInsets.only(right: MediaQuery.of(context).size.width /100, left: MediaQuery.of(context).size.width /100),
+              child: Stack(
+                children: [
+                  Positioned(
+                    left: MediaQuery.of(context).size.width /25,
+                    top: MediaQuery.of(context).size.height /35,
+                    child: Text(
+                        toDo.get("logo"),
+                        style: const TextStyle(
+                          fontSize: 20,
+                        ),
+                    ),
+                  ),
+                  Center(
+                    child: Text(toDo.get("name").toString())
+                  ),
+                  Positioned(
+                    right: MediaQuery.of(context).size.width /25,
+                    top: MediaQuery.of(context).size.height /70,
+                    child: IconButton(
+                        onPressed: () {
+                          _removeTodo(toDo);
+                        },
+                        icon: const Icon(
+                          Icons.delete_outline,
+                          color: Color(0xFFC81818),
+                        )
+                    ),
+                  )
+                ],
+              ),
+            ),
+          )
       ),
     );
 
@@ -113,11 +163,35 @@ class _HomePage extends State<HomePage> {
   }
 
   void _createTodo() {
+    var rand = Random();
     FirebaseFirestore.instance
         .collection('ToDo')
-        .add({'name': todo.text.toString(), 'userId': idUser});
+        .add({'name': todo.text.toString(), 'userId': idUser, 'logo': randomLogoList.elementAt(rand.nextInt(randomLogoList.length - 1))});
 
     _getToDoToDisplay();
+  }
+
+  void _removeTodo(toDo) async {
+
+      await FirebaseFirestore.instance
+          .collection('Task')
+          .where("toDoId", isEqualTo: toDo.id)
+          .get()
+          .then((querySnapshot) {
+        for (var result in querySnapshot.docs) {
+          FirebaseFirestore.instance
+              .collection("Task")
+              .doc(result.id)
+              .delete();
+        }
+      });
+
+      FirebaseFirestore.instance
+          .collection("ToDo")
+          .doc(toDo.id)
+          .delete();
+
+      _getToDoToDisplay();
   }
 
   @override
@@ -139,7 +213,7 @@ class _HomePage extends State<HomePage> {
                   },
                   child: const Icon(
                     Icons.logout,
-                    color: Colors.red,
+                    color: Color(0xFFC81818),
                   ),
                 )),
               ),
@@ -160,7 +234,7 @@ class _HomePage extends State<HomePage> {
       ]),
       body: loading ? const Center(
           child: SpinKitChasingDots(
-            color: Colors.red,
+            color: Color(0xFFC81818),
             size: 25.0,
         )
       )
