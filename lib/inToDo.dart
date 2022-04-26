@@ -28,6 +28,7 @@ class _inToDo extends State<inToDo> {
   ToDo currentToDo;
   String idUser = "";
   String idToDo = "";
+  DateTime selectedDate = DateTime.now();
 
   bool loading = true;
   List<Task> allTask = [];
@@ -323,6 +324,30 @@ class _inToDo extends State<inToDo> {
                   SizedBox(
                     height: MediaQuery.of(context).size.height / 30,
                   ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 60.0, right: 60.0),
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        _selectDate(context);
+                      },
+                      child: Text(
+                        selectedDate == null ? "Choisir un date" : "${selectedDate.day.toString()}/${selectedDate.month.toString()}/${selectedDate.year.toString()}",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      style: ButtonStyle(
+                        backgroundColor:
+                        MaterialStateProperty.all<Color>(const Color(0xFF4350B8)),
+                        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18.0),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height / 30,
+                  ),
                   InkWell(
                     child: Container(
                       padding: const EdgeInsets.only(top: 5.0, bottom: 5.0),
@@ -351,4 +376,19 @@ class _inToDo extends State<inToDo> {
           );
         });
   }
+
+  _selectDate(BuildContext context) async {
+    final DateTime selected = await showDatePicker(
+      context: context,
+      initialDate: selectedDate,
+      firstDate: DateTime(2010),
+      lastDate: DateTime(2025),
+    );
+    if (selected != null && selected != selectedDate) {
+      setState(() {
+        selectedDate = selected;
+      });
+    }
+  }
+  
 }
