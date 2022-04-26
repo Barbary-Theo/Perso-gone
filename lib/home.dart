@@ -29,7 +29,7 @@ class _HomePage extends State<HomePage> {
   List<Widget> toDoToDisplay = [];
   List<String> randomLogoList = ["👾", "🐱", "🍄", "🌵", "🌷", "🌼", "☄️", "🌎", "💫", "⚡️",
     "🌈", "☂️", "🥝", "⚽️", "🎯", "🎮", "⏰", "🔭", "🎁", "✏️", "🤖", "👒", "👑", "🦖",
-    "🦕", "🦬", "🌙"];
+    "🦕", "🦬", "🌙", "🦋"];
 
   final TextEditingController todo = TextEditingController();
   SharedPreferences prefs;
@@ -68,6 +68,7 @@ class _HomePage extends State<HomePage> {
       await FirebaseFirestore.instance
           .collection('ToDo')
           .where("userId", arrayContains: idUser)
+          .where("hide", isEqualTo: false)
           .get()
           .then((querySnapshot) {
         for (var result in querySnapshot.docs) {
@@ -86,7 +87,7 @@ class _HomePage extends State<HomePage> {
 
   void _goInTodo(toDo) {
     List<dynamic> usersId = toDo.get("userId");
-    ToDo currentToDo = ToDo(toDo.get("name"), usersId, toDo.get("logo"));
+    ToDo currentToDo = ToDo(toDo.get("name"), usersId, toDo.get("logo"), toDo.get("hide"), toDo.get("creationDate").toDate());
     Navigator.pushReplacement<void, void>(
         context,
         MaterialPageRoute<void>(
@@ -167,30 +168,17 @@ class _HomePage extends State<HomePage> {
     var rand = Random();
     FirebaseFirestore.instance
         .collection('ToDo')
-        .add({'name': todo.text.toString(), 'userId': [idUser], 'logo': randomLogoList.elementAt(rand.nextInt(randomLogoList.length - 1))});
+        .add({'name': todo.text.toString(), 'userId': [idUser], 'logo': randomLogoList.elementAt(rand.nextInt(randomLogoList.length - 1)), 'hide': false, 'creationDate': DateTime.now()});
 
     _getToDoToDisplay();
   }
 
   void _removeTodo(toDo) async {
 
-      await FirebaseFirestore.instance
-          .collection('Task')
-          .where("toDoId", isEqualTo: toDo.id)
-          .get()
-          .then((querySnapshot) {
-        for (var result in querySnapshot.docs) {
-          FirebaseFirestore.instance
-              .collection("Task")
-              .doc(result.id)
-              .delete();
-        }
-      });
-
       FirebaseFirestore.instance
           .collection("ToDo")
           .doc(toDo.id)
-          .delete();
+          .update({"hide": true});
 
       _getToDoToDisplay();
   }

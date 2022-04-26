@@ -5,10 +5,11 @@ class Task{
   DateTime _date = DateTime.now();
   String _toDoId = "";
   bool _hide = false;
+  bool _done = true;
   double _ratiox = 0;
   double _ratioy = 0;
 
-  Task(this._name, this._date, this._toDoId, this._hide, this._ratiox, this._ratioy);
+  Task(this._name, this._date, this._toDoId, this._hide, this._ratiox, this._ratioy, this._done);
 
   String get toDoId => _toDoId;
 
@@ -32,6 +33,12 @@ class Task{
 
   set hide(bool value) {
     _hide = value;
+  }
+
+  bool get done => _done;
+
+  set done(bool value) {
+    _done = value;
   }
 
   double get ratiox => _ratiox;

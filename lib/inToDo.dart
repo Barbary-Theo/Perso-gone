@@ -32,6 +32,7 @@ class _inToDo extends State<inToDo> {
   bool loading = true;
   List<Task> allTask = [];
   List<Widget> allTaskToDisplay = [];
+  List<Color> taskColor = [];
 
   final TextEditingController task = TextEditingController();
 
@@ -55,6 +56,7 @@ class _inToDo extends State<inToDo> {
 
   void _getAllToDoTask() {
     allTask = [];
+    taskColor = [];
 
     FirebaseFirestore.instance
         .collection('Task')
@@ -63,12 +65,47 @@ class _inToDo extends State<inToDo> {
         .get()
         .then((querySnapshot) {
       for (var result in querySnapshot.docs) {
-        allTask.add(Task(result.get("name"), result.get("date").toDate(), result.get("toDoId"), result.get("hide"), result.get("ratiox"), result.get("ratioy")));
+        allTask.add(Task(result.get("name"), result.get("date").toDate(),
+            result.get("toDoId"), result.get("hide"), result.get("ratiox"),
+            result.get("ratioy"), result.get("done")));
+        taskColor.add(_getCardColor(result.get("done")));
       }
 
       _getAllToDoTaskToDisplay();
 
     });
+  }
+
+  void _updateTaskWhenMoved(Task task) {
+    FirebaseFirestore.instance
+        .collection("Task")
+        .where("toDoId", isEqualTo: idToDo)
+        .where("name", isEqualTo: task.name)
+        .where("date", isEqualTo: task.date)
+        .get()
+        .then((querySnapshot) {
+      for (var result in querySnapshot.docs) {
+        FirebaseFirestore.instance
+            .collection("Task")
+            .doc(result.id)
+            .update({"ratiox": task.ratiox});
+        FirebaseFirestore.instance
+            .collection("Task")
+            .doc(result.id)
+            .update({"ratioy": task.ratioy});
+      }
+    });
+  }
+
+  Color _getCardColor(bool value) {
+    if(value) {
+        return const Color(0xFFD7DDEB);
+    }
+    return const Color(0xFFF3BBB4);
+  }
+
+  Color getColor(Set<MaterialState> states) {
+    return const Color(0xFF616161);
   }
 
   Widget _displayOneTask(Task task, int index) {
@@ -80,43 +117,81 @@ class _inToDo extends State<inToDo> {
           onVerticalDragUpdate: (DragUpdateDetails dd) {
             setState(() {
               allTask.elementAt(index).ratioy = dd.globalPosition.dy -
-                  MediaQuery.of(context).size.height / 6;
+                  MediaQuery.of(context).size.height / 5;
               allTask.elementAt(index).ratiox = dd.globalPosition.dx -
-                  MediaQuery.of(context).size.width / 6;
+                  MediaQuery.of(context).size.width / 5.5;
               _getAllToDoTaskToDisplay();
             });
           },
           onVerticalDragEnd: (DragEndDetails dd) {
-            FirebaseFirestore.instance
-                .collection("Task")
-                .where("toDoId", isEqualTo: idToDo)
-                .where("name", isEqualTo: task.name)
-                .get()
-                .then((querySnapshot) {
-              for (var result in querySnapshot.docs) {
-                FirebaseFirestore.instance
-                    .collection("Task")
-                    .doc(result.id)
-                    .update({"ratiox": task.ratiox});
-                FirebaseFirestore.instance
-                    .collection("Task")
-                    .doc(result.id)
-                    .update({"ratioy": task.ratioy});
-              }
-            });
+            _updateTaskWhenMoved(task);
           },
           child: SizedBox(
               height: MediaQuery.of(context).size.height / 7,
               width: MediaQuery.of(context).size.width / 2.2,
               child: Card(
-                color: Colors.black,
-                child: Center(
-                  child: Text(
-                    task.name,
-                    style: const TextStyle(
-                      color: Colors.white,
+                color: taskColor.elementAt(index),
+                child: Stack(
+                  children: [
+                    Checkbox(
+                      checkColor: Colors.white,
+                      fillColor: MaterialStateProperty.resolveWith(getColor),
+                      value: task.done,
+                        onChanged: (bool value) async {
+                            await FirebaseFirestore.instance
+                                .collection("Task")
+                                .where("toDoId", isEqualTo: idToDo)
+                                .where("name", isEqualTo: task.name)
+                                .where("date", isEqualTo: task.date)
+                                .get()
+                                .then((querySnapshot) {
+                              for (var result in querySnapshot.docs) {
+                                FirebaseFirestore.instance
+                                    .collection("Task")
+                                    .doc(result.id)
+                                    .update({"done": value});
+                              }
+                            });
+                            _getAllToDoTask();
+                        }
                     ),
-                  ),
+                    Center(
+                      child: Text(
+                        task.name,
+                        style: const TextStyle(
+                          color: Color(0xFF616161),
+                        ),
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: IconButton(
+                          alignment: Alignment.topRight,
+                          constraints: const BoxConstraints(
+                              minHeight: 1, minWidth: 1),
+                          onPressed: () async {
+                            await FirebaseFirestore.instance
+                                .collection("Task")
+                                .where("toDoId", isEqualTo: idToDo)
+                                .where("name", isEqualTo: task.name)
+                                .where("date", isEqualTo: task.date)
+                                .get()
+                                .then((querySnapshot) {
+                              for (var result in querySnapshot.docs) {
+                                FirebaseFirestore.instance
+                                    .collection("Task")
+                                    .doc(result.id)
+                                    .update({"hide": true});
+                              }
+                            });
+                            _getAllToDoTask();
+                          },
+                          icon: const Icon(
+                            Icons.highlight_remove_rounded,
+                            color: Color(0xFF616161),
+                          )),
+                    ),
+                  ],
                 ),
               ),
           ),
@@ -146,7 +221,7 @@ class _inToDo extends State<inToDo> {
   void _addTask() {
     FirebaseFirestore.instance
         .collection('Task')
-        .add({"name": task.text.toString(), "date": DateTime.now(), "toDoId": idToDo, "hide": false, "ratiox": 0.0, "ratioy": 0.0});
+        .add({"name": task.text.toString(), "date": DateTime.now(), "toDoId": idToDo, "hide": false, "ratiox": 0.0, "ratioy": 0.0, "done": false});
 
     _getAllToDoTask();
   }
