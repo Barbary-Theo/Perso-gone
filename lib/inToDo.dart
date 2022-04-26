@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:gone/home.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -6,6 +5,7 @@ import 'model/Task.dart';
 import 'model/User.dart';
 import 'model/ToDo.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 
 class inToDo extends StatefulWidget {
   const inToDo({Key key, this.userConnected, this.idUser, this.idToDo, this.currentToDo}) : super(key: key);
@@ -32,6 +32,7 @@ class _inToDo extends State<inToDo> {
   List<Color> taskColor = [];
 
   final TextEditingController task = TextEditingController();
+  final TextEditingController login = TextEditingController();
 
   @override
   _inToDo({this.userConnected, this.currentToDo, this.idUser, this.idToDo});
@@ -114,9 +115,9 @@ class _inToDo extends State<inToDo> {
           onVerticalDragUpdate: (DragUpdateDetails dd) {
             setState(() {
               allTask.elementAt(index).ratioy = dd.globalPosition.dy -
-                  MediaQuery.of(context).size.height / 5;
+                  MediaQuery.of(context).size.height / 5.5;
               allTask.elementAt(index).ratiox = dd.globalPosition.dx -
-                  MediaQuery.of(context).size.width / 5.5;
+                  MediaQuery.of(context).size.width / 4;
               _getAllToDoTaskToDisplay();
             });
           },
@@ -223,6 +224,23 @@ class _inToDo extends State<inToDo> {
     _getAllToDoTask();
   }
 
+  void _addUser() {
+    FirebaseFirestore.instance
+        .collection('User')
+        .where("login", isEqualTo: login.text.toString())
+        .get()
+        .then((querySnapshot) {
+      for (var result in querySnapshot.docs) {
+        List<dynamic> users = currentToDo.userId;
+        users.add(result.id);
+        FirebaseFirestore.instance
+            .collection("ToDo")
+            .doc(idToDo)
+            .update({"userId": users});
+      }
+    });
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -256,6 +274,22 @@ class _inToDo extends State<inToDo> {
                       fontSize: 20,
                     ),
                   ),
+                ),
+              ),
+              Positioned(
+                right: MediaQuery.of(context).size.width / 50,
+                top: MediaQuery.of(context).size.height / 50,
+                child: Center(
+                    child: GestureDetector(
+                      onTap: () {
+                        _showModalAddUser(context);
+                      },
+                      child: const Icon(
+                        Icons.add,
+                        color: Color(0xFF4350B8),
+                        size: 30,
+                      ),
+                    )
                 ),
               ),
             ],
@@ -324,15 +358,22 @@ class _inToDo extends State<inToDo> {
                     padding: const EdgeInsets.only(left: 60.0, right: 60.0),
                     child: ElevatedButton(
                       onPressed: () async {
-                        _selectDate(context);
+                        DatePicker.showDatePicker(context,
+                            showTitleActions: true,
+                            minTime: DateTime.now(),
+                            onChanged: (date) {}, onConfirm: (date) {
+                              selectedDate = date;
+                            },
+                            currentTime: DateTime.now(),
+                            locale: LocaleType.fr);
                       },
-                      child: Text(
-                        selectedDate == null ? "Choisir un date" : "${selectedDate.day.toString()}/${selectedDate.month.toString()}/${selectedDate.year.toString()}",
+                      child: const Text(
+                        "Choisir une date",
                         style: const TextStyle(color: Colors.white),
                       ),
                       style: ButtonStyle(
                         backgroundColor:
-                        MaterialStateProperty.all<Color>(const Color(0xFF4350B8)),
+                        MaterialStateProperty.all<Color>(const Color(0xFF616161)),
                         shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                           RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(18.0),
@@ -361,6 +402,7 @@ class _inToDo extends State<inToDo> {
                         ),
                         onPressed: () {
                           _addTask();
+                          selectedDate = DateTime.now();
                           Navigator.pop(context, false);
                         },
                       ),
@@ -373,18 +415,81 @@ class _inToDo extends State<inToDo> {
         });
   }
 
-  _selectDate(BuildContext context) async {
-    final DateTime selected = await showDatePicker(
-      context: context,
-      initialDate: selectedDate,
-      firstDate: DateTime(2010),
-      lastDate: DateTime(2025),
-    );
-    if (selected != null && selected != selectedDate) {
-      setState(() {
-        selectedDate = selected;
-      });
-    }
+  _showModalAddUser(context) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(10.0))),
+            contentPadding: const EdgeInsets.only(top: 10.0),
+            content: SizedBox(
+              width: MediaQuery.of(context).size.width / 1.4,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height / 50,
+                  ),
+                  const Center(
+                    child: Text(
+                        "Ajout d'un utilisateur",
+                      style: TextStyle(
+                        color:  Color(0xFF616161),
+                        fontSize: 20,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height / 30,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 30.0, right: 30.0),
+                    child: TextField(
+                      controller: login,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                        ),
+                        filled: true,
+                        hintStyle: TextStyle(color: Colors.grey),
+                        hintText: "Login de l'utilisateur",
+                        fillColor: Colors.white70,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height / 30,
+                  ),
+                  InkWell(
+                    child: Container(
+                      padding: const EdgeInsets.only(top: 5.0, bottom: 5.0),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF4350B8),
+                        borderRadius: BorderRadius.only(
+                            bottomLeft: Radius.circular(10.0),
+                            bottomRight: Radius.circular(10.0)),
+                      ),
+                      child: TextButton(
+                        child: const Text(
+                          "Ajouter l'utilisateur",
+                          style: TextStyle(color: Colors.white),
+                          textAlign: TextAlign.center,
+                        ),
+                        onPressed: () {
+                          _addUser();
+                          Navigator.pop(context, false);
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        });
   }
 
 }
