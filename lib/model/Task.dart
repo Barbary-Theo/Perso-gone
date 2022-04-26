@@ -3,13 +3,14 @@ class Task{
 
   String _name = "";
   DateTime _date = DateTime.now();
+  DateTime _dateDone = null;
   String _toDoId = "";
   bool _hide = false;
   bool _done = true;
   double _ratiox = 0;
   double _ratioy = 0;
 
-  Task(this._name, this._date, this._toDoId, this._hide, this._ratiox, this._ratioy, this._done);
+  Task(this._name, this._date, this._toDoId, this._hide, this._ratiox, this._ratioy, this._done, this._dateDone);
 
   String get toDoId => _toDoId;
 
@@ -27,6 +28,12 @@ class Task{
 
   set date(DateTime value) {
     _date = value;
+  }
+
+  DateTime get dateDone => _dateDone;
+
+  set dateDone(DateTime value) {
+    _dateDone = value;
   }
 
   bool get hide => _hide;

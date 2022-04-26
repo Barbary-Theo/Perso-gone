@@ -11,7 +11,6 @@ import 'package:gone/inToDo.dart';
 import 'model/User.dart';
 import 'model/ToDo.dart';
 
-
 class HomePage extends StatefulWidget {
   const HomePage({Key key, this.userConnected}) : super(key: key);
 
@@ -27,9 +26,7 @@ class _HomePage extends State<HomePage> {
   bool loading = true;
 
   List<Widget> toDoToDisplay = [];
-  List<String> randomLogoList = ["👾", "🐱", "🍄", "🌵", "🌷", "🌼", "☄️", "🌎", "💫", "⚡️",
-    "🌈", "☂️", "🥝", "⚽️", "🎯", "🎮", "⏰", "🔭", "🎁", "✏️", "🤖", "👒", "👑", "🦖",
-    "🦕", "🦬", "🌙", "🦋"];
+  List<Map<String, Color>> randomLogoList = [];
 
   final TextEditingController todo = TextEditingController();
   SharedPreferences prefs;
@@ -43,8 +40,50 @@ class _HomePage extends State<HomePage> {
     await prefs.setString('password', userConnected.password);
   }
 
+  Map<String, Color> _putInMap(String logo, Color color) {
+    Map<String, Color> map = Map();
+    map.putIfAbsent(logo, () => color);
+    return map;
+  }
+
+  void _initRandomLogoList() {
+    Map<String, Color> map = Map();
+
+    randomLogoList.add(_putInMap("👾", const Color(0xFFF4EAFB)));
+
+    randomLogoList.add(_putInMap("👾", const Color(0xFFF4EAFB)));
+    randomLogoList.add(_putInMap("🐱", const Color(0xFFFBFAEA)));
+    randomLogoList.add(_putInMap("🍄", const Color(0xFFFBEAEA)));
+    randomLogoList.add(_putInMap("🌵", const Color(0xFFEAFBEA)));
+    randomLogoList.add(_putInMap("🌷", const Color(0xFFFBEAF9)));
+    randomLogoList.add(_putInMap("🌼", const Color(0xFFFBF7EA)));
+    randomLogoList.add(_putInMap("☄️", const Color(0xFFFBF1EA)));
+    randomLogoList.add(_putInMap("🌎", const Color(0xFFEAF3FB)));
+    randomLogoList.add(_putInMap("💫", const Color(0xFFFBFAEA)));
+    randomLogoList.add(_putInMap("⚡️", const Color(0xFFFBFAEA)));
+    randomLogoList.add(_putInMap("🌈", const Color(0xFFEAF3FB)));
+    randomLogoList.add(_putInMap("☂️", const Color(0xFFF4EAFB)));
+    randomLogoList.add(_putInMap("🥝", const Color(0xFFEBFBEA)));
+    randomLogoList.add(_putInMap("⚽️", const Color(0xFFF3F3F3)));//u
+    randomLogoList.add(_putInMap("🎯", const Color(0xFFFBEAEA)));
+    randomLogoList.add(_putInMap("🎮", const Color(0xFFF3F3F3)));//u
+    randomLogoList.add(_putInMap("⏰", const Color(0xFFFBEAEA)));
+    randomLogoList.add(_putInMap("🔭", const Color(0xFFF3F3F3)));//u
+    randomLogoList.add(_putInMap("🎁", const Color(0xFFFBF8EA)));
+    randomLogoList.add(_putInMap("✏️", const Color(0xFFFBF9EA)));
+    randomLogoList.add(_putInMap("🤖", const Color(0xFFEAFBFB)));
+    randomLogoList.add(_putInMap("👒", const Color(0xFFFBF6EA)));
+    randomLogoList.add(_putInMap("👑", const Color(0xFFFBF2EA)));
+    randomLogoList.add(_putInMap("🦖", const Color(0xFFEEFBEA)));
+    randomLogoList.add(_putInMap("🦕", const Color(0xFFEAF7FB)));
+    randomLogoList.add(_putInMap("🦬", const Color(0xFFFBF3EA)));
+    randomLogoList.add(_putInMap("🌙", const Color(0xFFFBF8EA)));
+    randomLogoList.add(_putInMap("🦋", const Color(0xFFEAF7FB)));
+  }
+
   @override
   void initState() {
+    _initRandomLogoList();
     saveLog();
 
     FirebaseFirestore.instance
@@ -56,82 +95,82 @@ class _HomePage extends State<HomePage> {
         idUser = result.id;
       }
       _getToDoToDisplay();
-
     });
   }
 
-
   void _getToDoToDisplay() async {
+    List<Widget> dataTable = [];
 
-      List<Widget> dataTable = [];
+    await FirebaseFirestore.instance
+        .collection('ToDo')
+        .where("userId", arrayContains: idUser)
+        .where("hide", isEqualTo: false)
+        .get()
+        .then((querySnapshot) {
+      for (var result in querySnapshot.docs) {
+        dataTable.add(setUpToDo(result));
+      }
+    });
 
-      await FirebaseFirestore.instance
-          .collection('ToDo')
-          .where("userId", arrayContains: idUser)
-          .where("hide", isEqualTo: false)
-          .get()
-          .then((querySnapshot) {
-        for (var result in querySnapshot.docs) {
-          dataTable.add(
-            setUpToDo(result)
-          );
-        }
-      });
-
-      setState(() {
-        loading = false;
-        toDoToDisplay = dataTable;
-      });
-
+    setState(() {
+      loading = false;
+      toDoToDisplay = dataTable;
+    });
   }
 
   void _goInTodo(toDo) {
     List<dynamic> usersId = toDo.get("userId");
-    ToDo currentToDo = ToDo(toDo.get("name"), usersId, toDo.get("logo"), toDo.get("hide"), toDo.get("creationDate").toDate());
+    ToDo currentToDo = ToDo(toDo.get("name"), usersId, toDo.get("logo"),
+        toDo.get("hide"), toDo.get("creationDate").toDate());
     Navigator.pushReplacement<void, void>(
         context,
         MaterialPageRoute<void>(
-        builder: (BuildContext context) => inToDo(
-          userConnected: userConnected,
-          currentToDo: currentToDo,
-          idUser: idUser,
-          idToDo: toDo.id)
-    ));
-
+            builder: (BuildContext context) => inToDo(
+                userConnected: userConnected,
+                currentToDo: currentToDo,
+                idUser: idUser,
+                idToDo: toDo.id)));
   }
 
   Widget setUpToDo(toDo) {
+    Color colorByLogo = null;
+
+    for(Map<String, Color> map in randomLogoList) {
+        if(map.containsKey(toDo.get("logo"))) {
+            colorByLogo = map[toDo.get("logo")];
+        }
+    }
 
     return GestureDetector(
       onTap: () {
         _goInTodo(toDo);
       },
       child: Container(
-          height: MediaQuery.of(context).size.height /10,
-          margin: EdgeInsets.only(top: MediaQuery.of(context).size.height /50),
+          height: MediaQuery.of(context).size.height / 10,
+          margin: EdgeInsets.only(top: MediaQuery.of(context).size.height / 50),
           child: Center(
             child: Card(
               elevation: 1,
-              color: const Color(0xFFF4F5FC),
-              margin:  EdgeInsets.only(right: MediaQuery.of(context).size.width /100, left: MediaQuery.of(context).size.width /100),
+              color: colorByLogo,
+              margin: EdgeInsets.only(
+                  right: MediaQuery.of(context).size.width / 100,
+                  left: MediaQuery.of(context).size.width / 100),
               child: Stack(
                 children: [
                   Positioned(
-                    left: MediaQuery.of(context).size.width /25,
-                    top: MediaQuery.of(context).size.height /35,
+                    left: MediaQuery.of(context).size.width / 25,
+                    top: MediaQuery.of(context).size.height / 35,
                     child: Text(
-                        toDo.get("logo"),
-                        style: const TextStyle(
-                          fontSize: 20,
-                        ),
+                      toDo.get("logo"),
+                      style: const TextStyle(
+                        fontSize: 20,
+                      ),
                     ),
                   ),
-                  Center(
-                    child: Text(toDo.get("name").toString())
-                  ),
+                  Center(child: Text(toDo.get("name").toString())),
                   Positioned(
-                    right: MediaQuery.of(context).size.width /25,
-                    top: MediaQuery.of(context).size.height /70,
+                    right: MediaQuery.of(context).size.width / 25,
+                    top: MediaQuery.of(context).size.height / 70,
                     child: IconButton(
                         onPressed: () {
                           _removeTodo(toDo);
@@ -139,16 +178,13 @@ class _HomePage extends State<HomePage> {
                         icon: const Icon(
                           Icons.delete_outline,
                           color: Color(0xFFC81818),
-                        )
-                    ),
+                        )),
                   )
                 ],
               ),
             ),
-          )
-      ),
+          )),
     );
-
   }
 
   void _logOut() async {
@@ -166,21 +202,24 @@ class _HomePage extends State<HomePage> {
 
   void _createTodo() {
     var rand = Random();
-    FirebaseFirestore.instance
-        .collection('ToDo')
-        .add({'name': todo.text.toString(), 'userId': [idUser], 'logo': randomLogoList.elementAt(rand.nextInt(randomLogoList.length - 1)), 'hide': false, 'creationDate': DateTime.now()});
+    FirebaseFirestore.instance.collection('ToDo').add({
+      'name': todo.text.toString(),
+      'userId': [idUser],
+      'logo': randomLogoList.elementAt(rand.nextInt(randomLogoList.length - 1)).keys.first,
+      'hide': false,
+      'creationDate': DateTime.now()
+    });
 
     _getToDoToDisplay();
   }
 
   void _removeTodo(toDo) async {
+    FirebaseFirestore.instance
+        .collection("ToDo")
+        .doc(toDo.id)
+        .update({"hide": true});
 
-      FirebaseFirestore.instance
-          .collection("ToDo")
-          .doc(toDo.id)
-          .update({"hide": true});
-
-      _getToDoToDisplay();
+    _getToDoToDisplay();
   }
 
   @override
@@ -221,21 +260,22 @@ class _HomePage extends State<HomePage> {
           ),
         ),
       ]),
-      body: loading ? const Center(
-          child: SpinKitChasingDots(
-            color: Color(0xFFC81818),
-            size: 25.0,
-        )
-      )
-      : toDoToDisplay.isEmpty ? const Center(
-        child: Text("Vous avez aucune de ToDo 🔎"),
-      )
-      : SingleChildScrollView(
-          scrollDirection: Axis.vertical,
-          child: Column(
-              children: toDoToDisplay,
-          ),
-      ),
+      body: loading
+          ? const Center(
+              child: SpinKitChasingDots(
+              color: Color(0xFFC81818),
+              size: 25.0,
+            ))
+          : toDoToDisplay.isEmpty
+              ? const Center(
+                  child: Text("Vous avez aucune de ToDo 🔎"),
+                )
+              : SingleChildScrollView(
+                  scrollDirection: Axis.vertical,
+                  child: Column(
+                    children: toDoToDisplay,
+                  ),
+                ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           _showModalCreateTodo(context);
@@ -298,9 +338,9 @@ class _HomePage extends State<HomePage> {
                           textAlign: TextAlign.center,
                         ),
                         onPressed: () {
-                            _createTodo();
-                            todo.text = "";
-                            Navigator.pop(context, false);
+                          _createTodo();
+                          todo.text = "";
+                          Navigator.pop(context, false);
                         },
                       ),
                     ),

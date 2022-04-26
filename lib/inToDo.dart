@@ -65,7 +65,8 @@ class _inToDo extends State<inToDo> {
       for (var result in querySnapshot.docs) {
         allTask.add(Task(result.get("name"), result.get("date").toDate(),
             result.get("toDoId"), result.get("hide"), result.get("ratiox"),
-            result.get("ratioy"), result.get("done")));
+            result.get("ratioy"), result.get("done"),
+            result.get("dateDone") == null ? result.get("dateDone") : result.get("dateDone").toDate()));
         taskColor.add(_getCardColor(result.get("done")));
       }
 
@@ -148,6 +149,18 @@ class _inToDo extends State<inToDo> {
                                     .collection("Task")
                                     .doc(result.id)
                                     .update({"done": value});
+                                if(value) {
+                                  FirebaseFirestore.instance
+                                      .collection("Task")
+                                      .doc(result.id)
+                                      .update({"dateDone": DateTime.now()});
+                                }
+                                else {
+                                  FirebaseFirestore.instance
+                                      .collection("Task")
+                                      .doc(result.id)
+                                      .update({"dateDone": null});
+                                }
                               }
                             });
                             _getAllToDoTask();
@@ -219,7 +232,7 @@ class _inToDo extends State<inToDo> {
   void _addTask() {
     FirebaseFirestore.instance
         .collection('Task')
-        .add({"name": task.text.toString(), "date": DateTime.now(), "toDoId": idToDo, "hide": false, "ratiox": 0.0, "ratioy": 0.0, "done": false});
+        .add({"name": task.text.toString(), "date": DateTime.now(), "toDoId": idToDo, "hide": false, "ratiox": 0.0, "ratioy": 0.0, "done": false, "dateDone": null});
 
     _getAllToDoTask();
   }
@@ -268,7 +281,7 @@ class _inToDo extends State<inToDo> {
               Positioned(
                 child: Center(
                   child: Text(
-                    "Et voici " + currentToDo.name + " " + currentToDo.logo,
+                    "~ " + currentToDo.name + " " + currentToDo.logo + " ~",
                     style: const TextStyle(
                       color: Color(0xFF616161),
                       fontSize: 20,
@@ -403,6 +416,7 @@ class _inToDo extends State<inToDo> {
                         onPressed: () {
                           _addTask();
                           selectedDate = DateTime.now();
+                          task.text = "";
                           Navigator.pop(context, false);
                         },
                       ),
@@ -480,6 +494,7 @@ class _inToDo extends State<inToDo> {
                         ),
                         onPressed: () {
                           _addUser();
+                          login.text = "";
                           Navigator.pop(context, false);
                         },
                       ),
