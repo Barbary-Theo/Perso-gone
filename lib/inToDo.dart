@@ -1,15 +1,11 @@
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:gone/home.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:gone/signin.dart';
 import 'model/Task.dart';
 import 'model/User.dart';
 import 'model/ToDo.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-
-import 'package:shared_preferences/shared_preferences.dart';
 
 class inToDo extends StatefulWidget {
   const inToDo({Key key, this.userConnected, this.idUser, this.idToDo, this.currentToDo}) : super(key: key);
@@ -188,7 +184,7 @@ class _inToDo extends State<inToDo> {
                             _getAllToDoTask();
                           },
                           icon: const Icon(
-                            Icons.highlight_remove_rounded,
+                            Icons.close_rounded,
                             color: Color(0xFF616161),
                           )),
                     ),
@@ -332,7 +328,7 @@ class _inToDo extends State<inToDo> {
                       },
                       child: Text(
                         selectedDate == null ? "Choisir un date" : "${selectedDate.day.toString()}/${selectedDate.month.toString()}/${selectedDate.year.toString()}",
-                        style: TextStyle(color: Colors.white),
+                        style: const TextStyle(color: Colors.white),
                       ),
                       style: ButtonStyle(
                         backgroundColor:
@@ -390,5 +386,5 @@ class _inToDo extends State<inToDo> {
       });
     }
   }
-  
+
 }
