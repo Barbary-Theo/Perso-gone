@@ -67,7 +67,7 @@ class _HomePage extends State<HomePage> {
 
       await FirebaseFirestore.instance
           .collection('ToDo')
-          .where("userId", isEqualTo: idUser)
+          .where("userId", arrayContains: idUser)
           .get()
           .then((querySnapshot) {
         for (var result in querySnapshot.docs) {
@@ -85,7 +85,8 @@ class _HomePage extends State<HomePage> {
   }
 
   void _goInTodo(toDo) {
-    var currentToDo = ToDo(toDo.get("name"), toDo.get("userId"), toDo.get("logo"));
+    List<dynamic> usersId = toDo.get("userId");
+    ToDo currentToDo = ToDo(toDo.get("name"), usersId, toDo.get("logo"));
     Navigator.pushReplacement<void, void>(
         context,
         MaterialPageRoute<void>(
@@ -166,7 +167,7 @@ class _HomePage extends State<HomePage> {
     var rand = Random();
     FirebaseFirestore.instance
         .collection('ToDo')
-        .add({'name': todo.text.toString(), 'userId': idUser, 'logo': randomLogoList.elementAt(rand.nextInt(randomLogoList.length - 1))});
+        .add({'name': todo.text.toString(), 'userId': [idUser], 'logo': randomLogoList.elementAt(rand.nextInt(randomLogoList.length - 1))});
 
     _getToDoToDisplay();
   }

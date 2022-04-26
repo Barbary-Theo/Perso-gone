@@ -2,14 +2,14 @@
 class ToDo{
 
   String _name = "";
-  String _userId = "";
+  List<dynamic> _userId = [];
   String _logo = "";
 
   ToDo(this._name, this._userId, this._logo);
 
-  String get userId => _userId;
+  List<dynamic> get userId => _userId;
 
-  set userId(String value) {
+  set userId(List<dynamic> value) {
     _userId = value;
   }
 

@@ -63,12 +63,66 @@ class _inToDo extends State<inToDo> {
         .get()
         .then((querySnapshot) {
       for (var result in querySnapshot.docs) {
-        allTask.add(Task(result.get("name"), result.get("date").toDate(), result.get("toDoId"), result.get("hide")));
+        allTask.add(Task(result.get("name"), result.get("date").toDate(), result.get("toDoId"), result.get("hide"), result.get("ratiox"), result.get("ratioy")));
       }
 
       _getAllToDoTaskToDisplay();
 
     });
+  }
+
+  Widget _displayOneTask(Task task, int index) {
+
+    return Positioned(
+        top: task.ratioy,
+        left: task.ratiox,
+        child: GestureDetector(
+          onVerticalDragUpdate: (DragUpdateDetails dd) {
+            setState(() {
+              allTask.elementAt(index).ratioy = dd.globalPosition.dy -
+                  MediaQuery.of(context).size.height / 6;
+              allTask.elementAt(index).ratiox = dd.globalPosition.dx -
+                  MediaQuery.of(context).size.width / 6;
+              _getAllToDoTaskToDisplay();
+            });
+          },
+          onVerticalDragEnd: (DragEndDetails dd) {
+            FirebaseFirestore.instance
+                .collection("Task")
+                .where("toDoId", isEqualTo: idToDo)
+                .where("name", isEqualTo: task.name)
+                .get()
+                .then((querySnapshot) {
+              for (var result in querySnapshot.docs) {
+                FirebaseFirestore.instance
+                    .collection("Task")
+                    .doc(result.id)
+                    .update({"ratiox": task.ratiox});
+                FirebaseFirestore.instance
+                    .collection("Task")
+                    .doc(result.id)
+                    .update({"ratioy": task.ratioy});
+              }
+            });
+          },
+          child: SizedBox(
+              height: MediaQuery.of(context).size.height / 7,
+              width: MediaQuery.of(context).size.width / 2.2,
+              child: Card(
+                color: Colors.black,
+                child: Center(
+                  child: Text(
+                    task.name,
+                    style: const TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+          ),
+        ),
+      );
+
   }
 
   void _getAllToDoTaskToDisplay() {
@@ -78,14 +132,13 @@ class _inToDo extends State<inToDo> {
 
     for(int i = 0 ; i < allTask.length ; i++) {
       dataTable.add(
-          Text(allTask.elementAt(i).name),
+          _displayOneTask(allTask.elementAt(i), i)
         );
     }
 
     setState(() {
       loading = false;
       allTaskToDisplay = dataTable;
-      print(allTaskToDisplay);
     });
 
   }
@@ -93,7 +146,7 @@ class _inToDo extends State<inToDo> {
   void _addTask() {
     FirebaseFirestore.instance
         .collection('Task')
-        .add({"name": task.text.toString(), "date": DateTime.now(), "toDoId": idToDo, "hide": false});
+        .add({"name": task.text.toString(), "date": DateTime.now(), "toDoId": idToDo, "hide": false, "ratiox": 0.0, "ratioy": 0.0});
 
     _getAllToDoTask();
   }
@@ -146,7 +199,7 @@ class _inToDo extends State<inToDo> {
       : allTask.isEmpty ? const Center(
         child: Text("Aucune tâche pour cette To Do 📭"),
       )
-      : Column(
+      : Stack(
         children: allTaskToDisplay,
       ),
       floatingActionButton: FloatingActionButton(
