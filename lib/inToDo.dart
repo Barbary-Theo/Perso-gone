@@ -202,6 +202,16 @@ class _inToDo extends State<inToDo> {
                             color: Color(0xFF616161),
                           )),
                     ),
+                    Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Text(
+                        "Pour le ${_formatDate(task.date)}",
+                        style: const TextStyle(
+                          color: Color(0xFF616161),
+                          fontSize: 11,
+                        ),
+                      )
+                    ),
                   ],
                 ),
               ),
@@ -209,6 +219,21 @@ class _inToDo extends State<inToDo> {
         ),
       );
 
+  }
+
+  String _formatDate(DateTime date) {
+
+    if (date != null) {
+      var day = date.day.toString();
+      var month = date.month.toString();
+      var year = date.year.toString();
+
+      day.length == 1 ? day = "0" + day : day = day;
+      month.length == 1 ? month = "0" + month : month = month;
+
+      return day + "/" + month + "/" + year;
+    }
+    return "-";
   }
 
   void _getAllToDoTaskToDisplay() {
@@ -232,9 +257,10 @@ class _inToDo extends State<inToDo> {
   void _addTask() {
     FirebaseFirestore.instance
         .collection('Task')
-        .add({"name": task.text.toString(), "date": DateTime.now(), "toDoId": idToDo, "hide": false, "ratiox": 0.0, "ratioy": 0.0, "done": false, "dateDone": null});
+        .add({"name": task.text.toString(), "date": selectedDate, "toDoId": idToDo, "hide": false, "ratiox": 0.0, "ratioy": 0.0, "done": false, "dateDone": null});
 
     _getAllToDoTask();
+    selectedDate = DateTime.now();
   }
 
   void _addUser() {
@@ -275,6 +301,7 @@ class _inToDo extends State<inToDo> {
                       child: const Icon(
                         Icons.keyboard_return,
                         color: Color(0xFFC81818),
+                        size: 30,
                       ),
                     )),
               ),
@@ -298,7 +325,7 @@ class _inToDo extends State<inToDo> {
                         _showModalAddUser(context);
                       },
                       child: const Icon(
-                        Icons.add,
+                        Icons.man,
                         color: Color(0xFF4350B8),
                         size: 30,
                       ),
@@ -415,7 +442,6 @@ class _inToDo extends State<inToDo> {
                         ),
                         onPressed: () {
                           _addTask();
-                          selectedDate = DateTime.now();
                           task.text = "";
                           Navigator.pop(context, false);
                         },

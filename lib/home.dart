@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:gone/signin.dart';
 import 'package:gone/inToDo.dart';
+import 'package:gone/daily.dart';
 
 import 'model/User.dart';
 import 'model/ToDo.dart';
@@ -26,7 +27,7 @@ class _HomePage extends State<HomePage> {
   bool loading = true;
 
   List<Widget> toDoToDisplay = [];
-  List<Map<String, Color>> randomLogoList = [];
+  Map<String, Color> randomLogoList = {};
 
   final TextEditingController todo = TextEditingController();
   SharedPreferences prefs;
@@ -40,45 +41,40 @@ class _HomePage extends State<HomePage> {
     await prefs.setString('password', userConnected.password);
   }
 
-  Map<String, Color> _putInMap(String logo, Color color) {
-    Map<String, Color> map = Map();
-    map.putIfAbsent(logo, () => color);
-    return map;
-  }
-
   void _initRandomLogoList() {
-    Map<String, Color> map = Map();
+    Map<String, Color> map = {};
 
-    randomLogoList.add(_putInMap("👾", const Color(0xFFF4EAFB)));
+    map.putIfAbsent("👾", () => const Color(0xFFF4EAFB));
+    map.putIfAbsent("👾", () => const Color(0xFFF4EAFB));
+    map.putIfAbsent("🐱", () => const Color(0xFFFBFAEA));
+    map.putIfAbsent("🍄", () => const Color(0xFFFBEAEA));
+    map.putIfAbsent("🌵", () => const Color(0xFFEAFBEA));
+    map.putIfAbsent("🌷", () => const Color(0xFFFBEAF9));
+    map.putIfAbsent("🌼", () => const Color(0xFFFBF7EA));
+    map.putIfAbsent("☄️", () => const Color(0xFFFBF1EA));
+    map.putIfAbsent("🌎", () => const Color(0xFFEAF3FB));
+    map.putIfAbsent("💫", () => const Color(0xFFFBFAEA));
+    map.putIfAbsent("⚡️", () => const Color(0xFFFBFAEA));
+    map.putIfAbsent("🌈", () => const Color(0xFFEAF3FB));
+    map.putIfAbsent("☂️", () => const Color(0xFFF4EAFB));
+    map.putIfAbsent("🥝", () => const Color(0xFFEBFBEA));
+    map.putIfAbsent("⚽️", () => const Color(0xFFF3F3F3));
+    map.putIfAbsent("🎯", () => const Color(0xFFFBEAEA));
+    map.putIfAbsent("🎮", () => const Color(0xFFF3F3F3));
+    map.putIfAbsent("⏰", () => const Color(0xFFFBEAEA));
+    map.putIfAbsent("🔭", () => const Color(0xFFF3F3F3));
+    map.putIfAbsent("🎁", () => const Color(0xFFFBF8EA));
+    map.putIfAbsent("✏️", () => const Color(0xFFFBF9EA));
+    map.putIfAbsent("🤖", () => const Color(0xFFEAFBFB));
+    map.putIfAbsent("👒", () => const Color(0xFFFBF6EA));
+    map.putIfAbsent("👑", () => const Color(0xFFFBF2EA));
+    map.putIfAbsent("🦖", () => const Color(0xFFEEFBEA));
+    map.putIfAbsent("🦕", () => const Color(0xFFEAF7FB));
+    map.putIfAbsent("🦬", () => const Color(0xFFFBF3EA));
+    map.putIfAbsent("🌙", () => const Color(0xFFFBF8EA));
+    map.putIfAbsent("🦋", () => const Color(0xFFEAF7FB));
 
-    randomLogoList.add(_putInMap("👾", const Color(0xFFF4EAFB)));
-    randomLogoList.add(_putInMap("🐱", const Color(0xFFFBFAEA)));
-    randomLogoList.add(_putInMap("🍄", const Color(0xFFFBEAEA)));
-    randomLogoList.add(_putInMap("🌵", const Color(0xFFEAFBEA)));
-    randomLogoList.add(_putInMap("🌷", const Color(0xFFFBEAF9)));
-    randomLogoList.add(_putInMap("🌼", const Color(0xFFFBF7EA)));
-    randomLogoList.add(_putInMap("☄️", const Color(0xFFFBF1EA)));
-    randomLogoList.add(_putInMap("🌎", const Color(0xFFEAF3FB)));
-    randomLogoList.add(_putInMap("💫", const Color(0xFFFBFAEA)));
-    randomLogoList.add(_putInMap("⚡️", const Color(0xFFFBFAEA)));
-    randomLogoList.add(_putInMap("🌈", const Color(0xFFEAF3FB)));
-    randomLogoList.add(_putInMap("☂️", const Color(0xFFF4EAFB)));
-    randomLogoList.add(_putInMap("🥝", const Color(0xFFEBFBEA)));
-    randomLogoList.add(_putInMap("⚽️", const Color(0xFFF3F3F3)));//u
-    randomLogoList.add(_putInMap("🎯", const Color(0xFFFBEAEA)));
-    randomLogoList.add(_putInMap("🎮", const Color(0xFFF3F3F3)));//u
-    randomLogoList.add(_putInMap("⏰", const Color(0xFFFBEAEA)));
-    randomLogoList.add(_putInMap("🔭", const Color(0xFFF3F3F3)));//u
-    randomLogoList.add(_putInMap("🎁", const Color(0xFFFBF8EA)));
-    randomLogoList.add(_putInMap("✏️", const Color(0xFFFBF9EA)));
-    randomLogoList.add(_putInMap("🤖", const Color(0xFFEAFBFB)));
-    randomLogoList.add(_putInMap("👒", const Color(0xFFFBF6EA)));
-    randomLogoList.add(_putInMap("👑", const Color(0xFFFBF2EA)));
-    randomLogoList.add(_putInMap("🦖", const Color(0xFFEEFBEA)));
-    randomLogoList.add(_putInMap("🦕", const Color(0xFFEAF7FB)));
-    randomLogoList.add(_putInMap("🦬", const Color(0xFFFBF3EA)));
-    randomLogoList.add(_putInMap("🌙", const Color(0xFFFBF8EA)));
-    randomLogoList.add(_putInMap("🦋", const Color(0xFFEAF7FB)));
+    randomLogoList = map;
   }
 
   @override
@@ -133,13 +129,6 @@ class _HomePage extends State<HomePage> {
   }
 
   Widget setUpToDo(toDo) {
-    Color colorByLogo = null;
-
-    for(Map<String, Color> map in randomLogoList) {
-        if(map.containsKey(toDo.get("logo"))) {
-            colorByLogo = map[toDo.get("logo")];
-        }
-    }
 
     return GestureDetector(
       onTap: () {
@@ -151,7 +140,7 @@ class _HomePage extends State<HomePage> {
           child: Center(
             child: Card(
               elevation: 1,
-              color: colorByLogo,
+              color: randomLogoList[toDo.get("logo")],
               margin: EdgeInsets.only(
                   right: MediaQuery.of(context).size.width / 100,
                   left: MediaQuery.of(context).size.width / 100),
@@ -167,7 +156,14 @@ class _HomePage extends State<HomePage> {
                       ),
                     ),
                   ),
-                  Center(child: Text(toDo.get("name").toString())),
+                  Center(
+                      child: Text(
+                          toDo.get("name").toString(),
+                          style: const TextStyle(
+                            fontSize: 15,
+                          ),
+                      ),
+                  ),
                   Positioned(
                     right: MediaQuery.of(context).size.width / 25,
                     top: MediaQuery.of(context).size.height / 70,
@@ -200,12 +196,23 @@ class _HomePage extends State<HomePage> {
     );
   }
 
+  void _goDailyTask() async {
+
+    Navigator.pushReplacement<void, void>(
+      context,
+      MaterialPageRoute<void>(
+        builder: (BuildContext context) => DailyPage(userConnected: userConnected, idUser: idUser, colorByLogo: randomLogoList,),
+      ),
+    );
+  }
+
   void _createTodo() {
     var rand = Random();
+
     FirebaseFirestore.instance.collection('ToDo').add({
       'name': todo.text.toString(),
       'userId': [idUser],
-      'logo': randomLogoList.elementAt(rand.nextInt(randomLogoList.length - 1)).keys.first,
+      'logo': randomLogoList.keys.elementAt(rand.nextInt(randomLogoList.keys.length - 1)),
       'hide': false,
       'creationDate': DateTime.now()
     });
@@ -255,6 +262,20 @@ class _HomePage extends State<HomePage> {
                     ),
                   ),
                 ),
+              ),
+              Positioned(
+                right: MediaQuery.of(context).size.width / 50,
+                top: MediaQuery.of(context).size.height / 50,
+                child: Center(
+                    child: GestureDetector(
+                      onTap: () {
+                        _goDailyTask();
+                      },
+                      child: const Icon(
+                        Icons.date_range,
+                        color: Color(0xFF4350B8),
+                      ),
+                    )),
               ),
             ],
           ),
