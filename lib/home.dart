@@ -101,6 +101,7 @@ class _HomePage extends State<HomePage> {
         .collection('ToDo')
         .where("userId", arrayContains: idUser)
         .where("hide", isEqualTo: false)
+        .orderBy("name")
         .get()
         .then((querySnapshot) {
       for (var result in querySnapshot.docs) {
