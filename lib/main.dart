@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/services.dart';
 import 'package:gone/signin.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -7,7 +8,13 @@ import 'home.dart';
 import 'model/User.dart';
 
 Future<void> main() async {
+
   WidgetsFlutterBinding.ensureInitialized();
+
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]);
+
   await Firebase.initializeApp(
       options: const FirebaseOptions(
         apiKey: "AIzaSyApmarJW0QN3kR3VbkffxHhdqClKLJq2ow",
@@ -17,6 +24,9 @@ Future<void> main() async {
       ),
       name: "Gone"
   );
+
+  await SystemChrome.setPreferredOrientations(
+      [DeviceOrientation.portraitDown, DeviceOrientation.portraitUp]);
 
   var prefs = await SharedPreferences.getInstance();
   var login = prefs.getString("login");

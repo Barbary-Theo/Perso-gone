@@ -110,15 +110,15 @@ class _inToDo extends State<inToDo> {
   Widget _displayOneTask(Task task, int index) {
 
     return Positioned(
-        top: task.ratioy,
-        left: task.ratiox,
+        top: task.ratioy * MediaQuery.of(context).size.height,
+        left: task.ratiox * MediaQuery.of(context).size.width,
         child: GestureDetector(
           onVerticalDragUpdate: (DragUpdateDetails dd) {
             setState(() {
-              allTask.elementAt(index).ratioy = dd.globalPosition.dy -
-                  MediaQuery.of(context).size.height / 5.5;
-              allTask.elementAt(index).ratiox = dd.globalPosition.dx -
-                  MediaQuery.of(context).size.width / 4;
+              allTask.elementAt(index).ratioy = (dd.globalPosition.dy -
+                  MediaQuery.of(context).size.height / 5.5) / MediaQuery.of(context).size.height;
+              allTask.elementAt(index).ratiox = (dd.globalPosition.dx -
+                  MediaQuery.of(context).size.width / 4 ) / MediaQuery.of(context).size.width;
               _displayThisTask(index);
               //_getAllToDoTaskToDisplay();
             });
