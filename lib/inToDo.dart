@@ -119,7 +119,8 @@ class _inToDo extends State<inToDo> {
                   MediaQuery.of(context).size.height / 5.5;
               allTask.elementAt(index).ratiox = dd.globalPosition.dx -
                   MediaQuery.of(context).size.width / 4;
-              _getAllToDoTaskToDisplay();
+              _displayThisTask(index);
+              //_getAllToDoTaskToDisplay();
             });
           },
           onVerticalDragEnd: (DragEndDetails dd) {
@@ -234,6 +235,17 @@ class _inToDo extends State<inToDo> {
       return day + "/" + month + "/" + year;
     }
     return "-";
+  }
+
+  void _displayThisTask(int index) {
+
+    List<Widget> dataTable = allTaskToDisplay;
+    dataTable[index] = _displayOneTask(allTask.elementAt(index), index);
+
+    setState(() {
+      allTaskToDisplay = dataTable;
+    });
+
   }
 
   void _getAllToDoTaskToDisplay() {
